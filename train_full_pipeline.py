@@ -75,6 +75,10 @@ if __name__ == "__main__":
                         help='Use standard config for a high poly mesh, with 1M vertices and 1 Gaussians per triangle.')
     parser.add_argument('--refinement_time', type=str, default=None, 
                         help="Default configs for time to spend on refinement. Can be 'short', 'medium' or 'long'.")
+    
+    # Train iterations
+    parser.add_argument('-i', '--iterations', type=int, default=7_000, 
+                        help='Number of iterations to train the refined SuGaR model for. Default is 7_000.')
       
     # Evaluation split
     parser.add_argument('--eval', type=str2bool, default=True, help='Use eval split.')
@@ -123,7 +127,7 @@ if __name__ == "__main__":
                 -s {args.scene_path} \
                 -m {gs_checkpoint_dir} \
                 {white_background_str}\
-                --iterations 7_000"
+                --iterations {args.iterations}"
         )
     else:
         print("A vanilla 3DGS checkpoint was provided. Skipping the vanilla 3DGS optimization.")
@@ -136,7 +140,7 @@ if __name__ == "__main__":
         f"python train.py \
             -s {args.scene_path} \
             -c {gs_checkpoint_dir} \
-            -i 7_000 \
+            -i {args.iterations} \
             -r {args.regularization_type} \
             -l {args.surface_level} \
             -v {args.n_vertices_in_mesh} \

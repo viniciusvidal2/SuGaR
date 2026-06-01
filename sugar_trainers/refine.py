@@ -53,8 +53,6 @@ def refined_training(args):
         
     # -----Optimization parameters-----
 
-    # Learning rates and scheduling
-    num_iterations = 15_000  # Changed
 
     spatial_lr_scale = None
     position_lr_init=0.00016
@@ -513,8 +511,8 @@ def refined_training(args):
     train_losses = []
     t0 = time.time()
     
-    if initialize_from_trained_3dgs:
-        iteration = 7000 - 1  # TODO: Maybe should try without this?
+    #if initialize_from_trained_3dgs:
+    #    iteration = 7000 - 1  # TODO: Maybe should try without this?
     
     for batch in range(9_999_999):
         if iteration >= num_iterations:

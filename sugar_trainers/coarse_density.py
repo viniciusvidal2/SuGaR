@@ -48,13 +48,13 @@ def coarse_training_with_density_regularization(args):
     
         
     # -----Rendering parameters-----
-    compute_color_in_rasterizer = True  # TODO: Try True
+    compute_color_in_rasterizer = True
 
         
     # -----Optimization parameters-----
 
     # Learning rates and scheduling
-    num_iterations = 15_000  # Changed
+    num_iterations = args.iteration_to_load  # Changed
 
     spatial_lr_scale = None
     position_lr_init=0.00016
@@ -469,8 +469,8 @@ def coarse_training_with_density_regularization(args):
     train_losses = []
     t0 = time.time()
     
-    if initialize_from_trained_3dgs:
-        iteration = 7000 - 1
+    #if initialize_from_trained_3dgs:
+    #    iteration = 7000 - 1
     
     for batch in range(9_999_999):
         if iteration >= num_iterations:

@@ -118,6 +118,7 @@ if __name__ == "__main__":
         'checkpoint_path': args.checkpoint_path,
         'scene_path': args.scene_path,
         'iteration_to_load': args.iteration_to_load,
+        'refinement_iterations': args.refinement_iterations,
         'output_dir': None,
         'eval': args.eval,
         'estimation_factor': 0.2,
