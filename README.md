@@ -514,3 +514,134 @@ The user is free to provide a custom bounding box to the `train.py` script, usin
 </details>
 
 </details>
+
+## Docker
+
+<details>
+<summary><span style="font-weight: bold;">Click here to see content.</span></summary>
+
+This section describes how to use the provided `Dockerfile` to build a self-contained image for running SuGaR's full training pipeline, and how to recreate the `sugar` conda environment from the pinned `requirements.txt`.
+
+---
+
+### Prerequisites
+
+- **Docker ≥ 20.10** with the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) installed and configured.
+- An NVIDIA GPU with CUDA 12.1-compatible drivers (driver version ≥ 525.85).
+
+Verify that the toolkit is working correctly before building:
+
+```shell
+docker run --rm --gpus all nvidia/cuda:12.1.1-base-ubuntu22.04 nvidia-smi
+```
+
+---
+
+### 1. Build the Docker image
+
+From the root of the repository, run:
+
+```shell
+docker build -t sugar:latest .
+```
+
+> **Note:** The build compiles `nvdiffrast`, `diff-gaussian-rasterization`, and `simple-knn` from source inside the container (against the CUDA 12.1 toolkit), so the first build will take **20–40 minutes** depending on your machine. Subsequent builds are cached.
+
+---
+
+### 2. Run the container
+
+The container entrypoint is `train_full_pipeline.py`. Every argument the script accepts is exposed as an **environment variable** that you pass with `-e`. The two required variables are:
+
+| Environment variable | Corresponding flag | Description |
+|---|---|---|
+| `SCENE_PATH` | `-s` | **(Required)** Path to the COLMAP scene **inside the container** |
+| `REGULARIZATION_TYPE` | `-r` | **(Required)** `dn_consistency` \| `density` \| `sdf` |
+
+#### Minimal example
+
+```shell
+docker run --rm --gpus all \
+    -v /path/to/your/scene:/data/scene \
+    -v /path/to/output:/app/output \
+    -e SCENE_PATH=/data/scene \
+    -e REGULARIZATION_TYPE=dn_consistency \
+    sugar:latest
+```
+
+- `--gpus all` grants the container full GPU access (required for PyTorch/CUDA).
+- Mount your scene directory into the container with `-v <host_path>:<container_path>`.
+- Mount `/app/output` to a host directory to persist the results after the container exits.
+
+#### Full example with optional parameters
+
+```shell
+docker run --rm --gpus all \
+    -v /path/to/your/scene:/data/scene \
+    -v /path/to/output:/app/output \
+    -e SCENE_PATH=/data/scene \
+    -e REGULARIZATION_TYPE=dn_consistency \
+    -e HIGH_POLY=True \
+    -e EXPORT_OBJ=True \
+    -e REFINEMENT_TIME=medium \
+    -e ITERATIONS=7000 \
+    -e GPU=0 \
+    sugar:latest
+```
+
+#### All available environment variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `SCENE_PATH` | *(required)* | Path to the COLMAP dataset inside the container |
+| `REGULARIZATION_TYPE` | *(required)* | `dn_consistency`, `density`, or `sdf` |
+| `GS_OUTPUT_DIR` | *(empty)* | Skip vanilla 3DGS and use an existing checkpoint |
+| `SURFACE_LEVEL` | `0.3` | Surface level for mesh extraction |
+| `N_VERTICES_IN_MESH` | `1000000` | Number of vertices in the extracted mesh |
+| `PROJECT_MESH_ON_SURFACE_POINTS` | `True` | Project mesh on surface points for better details |
+| `BBOXMIN` | *(empty)* | Min coordinates for foreground bounding box, e.g. `"(-1,-1,-1)"` |
+| `BBOXMAX` | *(empty)* | Max coordinates for foreground bounding box, e.g. `"(1,1,1)"` |
+| `CENTER_BBOX` | `True` | Center the bounding box |
+| `GAUSSIANS_PER_TRIANGLE` | `1` | Number of Gaussians per triangle |
+| `REFINEMENT_ITERATIONS` | `15000` | Refinement iterations |
+| `EXPORT_OBJ` | `True` | Export a UV-textured `.obj` mesh |
+| `SQUARE_SIZE` | `8` | Square size for UV texture |
+| `POSTPROCESS_MESH` | `False` | Postprocess mesh to remove low-density border triangles |
+| `POSTPROCESS_DENSITY_THRESHOLD` | `0.1` | Density threshold for postprocessing |
+| `POSTPROCESS_ITERATIONS` | `5` | Iterations for mesh postprocessing |
+| `EXPORT_PLY` | `True` | Export a `.ply` with refined 3D Gaussians |
+| `LOW_POLY` | `False` | Use low-poly preset (200k vertices, 6 Gaussians/triangle) |
+| `HIGH_POLY` | `False` | Use high-poly preset (1M vertices, 1 Gaussian/triangle) |
+| `REFINEMENT_TIME` | *(empty)* | `short` (2k), `medium` (7k), or `long` (15k) iterations |
+| `ITERATIONS` | `7000` | Vanilla 3DGS training iterations |
+| `EVAL` | `True` | Use evaluation split |
+| `GPU` | `0` | GPU device index |
+| `WHITE_BACKGROUND` | `False` | Use white background instead of black |
+
+---
+
+### 3. Recreate the `sugar` conda environment from `requirements.txt`
+
+If you prefer to run SuGaR locally with Conda instead of Docker, you can recreate the exact pinned environment used during development:
+
+```shell
+# 1. Create a new conda environment with Python 3.10
+conda create -n sugar python=3.10 -y
+conda activate sugar
+
+# 2. Install PyTorch with CUDA 12.1 support first
+pip install torch==2.5.1+cu121 torchaudio==2.5.1+cu121 torchvision==0.20.1+cu121 \
+    --extra-index-url https://download.pytorch.org/whl/cu121
+
+# 3. Install the remaining requirements
+pip install -r requirements.txt
+
+# 4. Build and install local submodules
+pip install -e nvdiffrast/
+pip install -e gaussian_splatting/submodules/diff-gaussian-rasterization/
+pip install -e gaussian_splatting/submodules/simple-knn/
+```
+
+> **Note:** `pytorch3d` is pinned to a specific commit in `requirements.txt` and will be compiled from source. This step requires a CUDA-capable machine and may take several minutes.
+
+</details>
