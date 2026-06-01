@@ -18,8 +18,14 @@ if [ -z "$REGULARIZATION_TYPE" ]; then
     exit 1
 fi
 
+if [ -z "$OUTPUT_DIR" ]; then
+    echo "[ERROR] OUTPUT_DIR environment variable is required."
+    echo "        In Docker this is always /app/output (mounted from host)."
+    exit 1
+fi
+
 # Build the argument list
-ARGS="-s ${SCENE_PATH} -r ${REGULARIZATION_TYPE}"
+ARGS="-s ${SCENE_PATH} -r ${REGULARIZATION_TYPE} --output_dir ${OUTPUT_DIR}"
 
 [ -n "$GS_OUTPUT_DIR" ]                  && ARGS="$ARGS --gs_output_dir ${GS_OUTPUT_DIR}"
 [ -n "$SURFACE_LEVEL" ]                  && ARGS="$ARGS -l ${SURFACE_LEVEL}"
@@ -44,9 +50,27 @@ ARGS="-s ${SCENE_PATH} -r ${REGULARIZATION_TYPE}"
 [ -n "$GPU" ]                            && ARGS="$ARGS --gpu ${GPU}"
 [ -n "$WHITE_BACKGROUND" ]               && ARGS="$ARGS --white_background ${WHITE_BACKGROUND}"
 
+# Note: OUTPUT_DIR is always included in ARGS (validated above), not optional.
+
 echo "========================================"
 echo " SuGaR – train_full_pipeline.py"
 echo " Args: $ARGS"
 echo "========================================"
+
+# Add Python site-packages library paths (torch/lib and nvidia/*/lib) to LD_LIBRARY_PATH
+# This resolves missing shared object errors (like libcudart.so) for PyTorch C++ extensions.
+export LD_LIBRARY_PATH=$(python -c '
+import os, torch
+torch_lib = os.path.join(os.path.dirname(torch.__file__), "lib")
+site_packages = os.path.dirname(os.path.dirname(torch.__file__))
+nvidia_dir = os.path.join(site_packages, "nvidia")
+paths = [torch_lib]
+if os.path.exists(nvidia_dir):
+    for d in os.listdir(nvidia_dir):
+        lib_path = os.path.join(nvidia_dir, d, "lib")
+        if os.path.isdir(lib_path):
+            paths.append(lib_path)
+print(":".join(paths))
+'):$LD_LIBRARY_PATH
 
 exec python /app/train_full_pipeline.py $ARGS

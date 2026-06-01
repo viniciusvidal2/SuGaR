@@ -90,9 +90,9 @@ RUN pip install --no-cache-dir --no-build-isolation \
 COPY nvdiffrast/ /app/nvdiffrast/
 COPY gaussian_splatting/submodules/ /app/gaussian_splatting/submodules/
 
-RUN pip install --no-cache-dir --no-build-isolation -e /app/nvdiffrast
-RUN pip install --no-cache-dir --no-build-isolation -e /app/gaussian_splatting/submodules/diff-gaussian-rasterization
-RUN pip install --no-cache-dir --no-build-isolation -e /app/gaussian_splatting/submodules/simple-knn
+RUN pip install --no-cache-dir --no-build-isolation /app/nvdiffrast
+RUN pip install --no-cache-dir --no-build-isolation /app/gaussian_splatting/submodules/diff-gaussian-rasterization
+RUN pip install --no-cache-dir --no-build-isolation /app/gaussian_splatting/submodules/simple-knn
 
 # ---------------------------------------------------------------------------
 # Stage 6 – Application code  (invalidated on every code edit – cheap step)
@@ -146,6 +146,7 @@ ENV ITERATIONS="7000"
 ENV EVAL="True"
 ENV GPU="0"
 ENV WHITE_BACKGROUND="False"
+ENV OUTPUT_DIR="/app/output"
 
 # ---------------------------------------------------------------------------
 # Entrypoint

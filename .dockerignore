@@ -1,0 +1,40 @@
+# Version control
+.git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Outputs and user data
+output/
+data/
+
+# Python caches and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Submodules built artifacts
+gaussian_splatting/submodules/diff-gaussian-rasterization/build/
+gaussian_splatting/submodules/diff-gaussian-rasterization/*.egg-info/
+gaussian_splatting/submodules/simple-knn/build/
+gaussian_splatting/submodules/simple-knn/*.egg-info/
+nvdiffrast/build/
+nvdiffrast/*.egg-info/
+
+# PyTorch3D build artifacts
+pytorch3d/
+
+# IDEs and environments
+.vscode/
+.idea/
+.env
+venv/
+env/
+.venv/

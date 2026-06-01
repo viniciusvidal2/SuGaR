@@ -526,13 +526,70 @@ This section describes how to use the provided `Dockerfile` to build a self-cont
 
 ### Prerequisites
 
-- **Docker ≥ 20.10** with the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) installed and configured.
+- **Docker ≥ 20.10**
 - An NVIDIA GPU with CUDA 12.1-compatible drivers (driver version ≥ 525.85).
 
-Verify that the toolkit is working correctly before building:
+#### Installing NVIDIA Container Toolkit
 
+If you want to install the NVIDIA Container Toolkit (to allow Docker to use GPUs), you can do so via the official NVIDIA repository.
+
+**1. Add the repository**
 ```shell
-docker run --rm --gpus all nvidia/cuda:12.1.1-base-ubuntu22.04 nvidia-smi
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | \
+sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+
+curl -fsSL https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list > /dev/null
+
+sudo apt update
+```
+
+**2. Install**
+```shell
+sudo apt install -y nvidia-container-toolkit
+```
+
+**3. Configure Docker**
+```shell
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+```
+
+**4. Test**
+
+If the NVIDIA driver is working:
+```shell
+docker run --rm --gpus all ubuntu nvidia-smi
+```
+or
+```shell
+docker run --rm --gpus all nvidia/cuda:12.9.0-base-ubuntu22.04 nvidia-smi
+```
+
+**Important Note Regarding Your Environment**
+
+Based on previous logs, your host NVIDIA driver appears to be broken:
+`nvidia-smi: command not found`
+`nvidia-dkms-580 failed to build`
+
+The NVIDIA Container Toolkit does not install drivers. It only allows containers to use the drivers that are already installed on the host.
+
+Therefore, before testing the toolkit, confirm that it works on the host:
+```shell
+nvidia-smi
+```
+
+If this command still fails, no container will be able to access the GPU, regardless of whether the toolkit is installed.
+
+You can check if the toolkit is already installed with:
+```shell
+dpkg -l | grep nvidia-container
+```
+
+and check the Docker configuration with:
+```shell
+docker info | grep -i runtime
 ```
 
 ---

@@ -87,6 +87,11 @@ if __name__ == "__main__":
     parser.add_argument('--gpu', type=int, default=0, help='Index of GPU device to use.')
     parser.add_argument('--white_background', type=str2bool, default=False, help='Use a white background instead of black.')
 
+    # Output directory
+    parser.add_argument('--output_dir', type=str, default='output',
+                        help='Base directory where all outputs (vanilla GS, coarse SuGaR, refined SuGaR, meshes) will be saved. '
+                        'Defaults to "output" (relative to the working directory).')
+
     # Parse arguments
     args = parser.parse_args()
     if args.low_poly:
@@ -115,9 +120,9 @@ if __name__ == "__main__":
     if args.gs_output_dir is None:
         sep = os.path.sep
         if len(args.scene_path.split(sep)[-1]) > 0:
-            gs_checkpoint_dir = os.path.join("output", "vanilla_gs", args.scene_path.split(sep)[-1])
+            gs_checkpoint_dir = os.path.join(args.output_dir, "vanilla_gs", args.scene_path.split(sep)[-1])
         else:
-            gs_checkpoint_dir = os.path.join("output", "vanilla_gs", args.scene_path.split(sep)[-2])
+            gs_checkpoint_dir = os.path.join(args.output_dir, "vanilla_gs", args.scene_path.split(sep)[-2])
         gs_checkpoint_dir = gs_checkpoint_dir + sep
 
         # Trains a 3DGS scene for 7k iterations
@@ -161,5 +166,6 @@ if __name__ == "__main__":
             --refinement_time {args.refinement_time} \
             --eval {args.eval} \
             --gpu {args.gpu} \
-            --white_background {args.white_background}"
+            --white_background {args.white_background} \
+            --output_dir {args.output_dir}"
     )

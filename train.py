@@ -1,4 +1,5 @@
 import argparse
+import os
 from sugar_utils.general_utils import str2bool
 from sugar_trainers.coarse_density import coarse_training_with_density_regularization
 from sugar_trainers.coarse_sdf import coarse_training_with_sdf_regularization
@@ -89,6 +90,11 @@ if __name__ == "__main__":
     parser.add_argument('--gpu', type=int, default=0, help='Index of GPU device to use.')
     parser.add_argument('--white_background', type=str2bool, default=False, help='Use a white background instead of black.')
 
+    # Output directory
+    parser.add_argument('--output_dir', type=str, default='output',
+                        help='Base directory where all outputs (coarse SuGaR, refined SuGaR, meshes) will be saved. '
+                        'Defaults to "output" (relative to the working directory).')
+
     # Parse arguments
     args = parser.parse_args()
     if args.low_poly:
@@ -119,7 +125,7 @@ if __name__ == "__main__":
         'scene_path': args.scene_path,
         'iteration_to_load': args.iteration_to_load,
         'refinement_iterations': args.refinement_iterations,
-        'output_dir': None,
+        'output_dir': os.path.join(args.output_dir, 'coarse') if args.output_dir else None,
         'eval': args.eval,
         'estimation_factor': 0.2,
         'normal_factor': 0.2,
@@ -145,7 +151,7 @@ if __name__ == "__main__":
         'surface_level': args.surface_level,
         'decimation_target': args.n_vertices_in_mesh,
         'project_mesh_on_surface_points': args.project_mesh_on_surface_points,
-        'mesh_output_dir': None,
+        'mesh_output_dir': os.path.join(args.output_dir, 'coarse_mesh') if args.output_dir else None,
         'bboxmin': args.bboxmin,
         'bboxmax': args.bboxmax,
         'center_bbox': args.center_bbox,
@@ -163,7 +169,7 @@ if __name__ == "__main__":
         'scene_path': args.scene_path,
         'checkpoint_path': args.checkpoint_path,
         'mesh_path': coarse_mesh_path,      
-        'output_dir': None,
+        'output_dir': os.path.join(args.output_dir, 'refined') if args.output_dir else None,
         'iteration_to_load': args.iteration_to_load,
         'normal_consistency_factor': 0.1,    
         'gaussians_per_triangle': args.gaussians_per_triangle,        
@@ -186,7 +192,8 @@ if __name__ == "__main__":
             'iteration_to_load': args.iteration_to_load,
             'checkpoint_path': args.checkpoint_path,
             'refined_model_path': refined_sugar_path,
-            'mesh_output_dir': None,
+            'mesh_output_dir': os.path.join(args.output_dir, 'refined_mesh') if args.output_dir else None,
+            'coarse_mesh_dir': os.path.join(args.output_dir, 'coarse_mesh') if args.output_dir else None,
             'n_gaussians_per_surface_triangle': args.gaussians_per_triangle,
             'square_size': args.square_size,
             'eval': args.eval,
