@@ -24,6 +24,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     CUDA_HOME=/usr/local/cuda \
     PATH="/usr/local/cuda/bin:${PATH}" \
     LD_LIBRARY_PATH="/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+    FORCE_CUDA="1" \
+    TORCH_CUDA_ARCH_LIST="7.0;7.5;8.0;8.6;8.9;9.0+PTX" \
     # Explicitly list target CUDA architectures so PyTorch's cpp_extension
     # never has to probe attached GPUs (build daemon has no GPU access).
     # Covers Volta (7.0), Turing (7.5), Ampere (8.0/8.6), Ada (8.9), Hopper (9.0).
