@@ -261,8 +261,10 @@ if __name__ == "__main__":
                             CONSOLE.print("Using UV texture for rendering.")
                             coarse_estimation_factor_str = str(coarse_estimation_factor).replace('.', '')
                             surface_level_str = str(surface_level).replace('.', '')
-                            textured_mesh_path = os.path.join('./output/refined_mesh/', scene_name, 
-                                        f'sugarfine_3Dgs{coarse_iteration_to_load}_{estim_method}estim{coarse_estimation_factor_str}_sdfnorm02_level{surface_level_str}_decim{decimation_target}_normalconsistency01_gaussperface{n_gaussians_per_surface_triangle}.obj')
+                            textured_mesh_filename = f'sugarfine_3Dgs{coarse_iteration_to_load}_{estim_method}estim{coarse_estimation_factor_str}_sdfnorm02_level{surface_level_str}_decim{decimation_target}_normalconsistency01_gaussperface{n_gaussians_per_surface_triangle}.obj'
+                            textured_mesh_path = os.path.join('./output/refined_mesh/', scene_name, textured_mesh_filename)
+                            if not os.path.exists(textured_mesh_path):
+                                textured_mesh_path = os.path.join('./output/refined_mesh/', textured_mesh_filename)
                             CONSOLE.print(f'Loading textured mesh: {textured_mesh_path}')
                             
                             textured_mesh = load_objs_as_meshes([textured_mesh_path]).to(nerfmodel_30k.device)
@@ -325,14 +327,22 @@ if __name__ == "__main__":
                                     'AA', str(decimation_target).replace('.', '')
                                     )
                             mesh_save_dir = os.path.join('./output/coarse_mesh/', scene_name)
-                            sugar_mesh_path = os.path.join(mesh_save_dir, sugar_mesh_path)
+                            sugar_mesh_path_with_scene = os.path.join(mesh_save_dir, sugar_mesh_path)
+                            if os.path.exists(sugar_mesh_path_with_scene):
+                                sugar_mesh_path = sugar_mesh_path_with_scene
+                            else:
+                                sugar_mesh_path = os.path.join('./output/coarse_mesh/', sugar_mesh_path)
                             CONSOLE.print(f'Loading mesh to bind to: {sugar_mesh_path}')
                             o3d_mesh = o3d.io.read_triangle_mesh(sugar_mesh_path)
                             
                             # Loading refined SuGaR model
                             mesh_name = sugar_mesh_path.split("/")[-1].split(".")[0]
                             refined_sugar_path = 'sugarfine_' + mesh_name.replace('sugarmesh_', '') + '_normalconsistencyXX_gaussperfaceYY/'
-                            refined_sugar_path = os.path.join(os.path.join('./output/refined/', scene_name), refined_sugar_path)
+                            refined_sugar_path_with_scene = os.path.join(os.path.join('./output/refined/', scene_name), refined_sugar_path)
+                            if os.path.exists(refined_sugar_path_with_scene):
+                                refined_sugar_path = refined_sugar_path_with_scene
+                            else:
+                                refined_sugar_path = os.path.join('./output/refined/', refined_sugar_path)
                             refined_sugar_path = refined_sugar_path.replace(
                                 'XX', str(surface_mesh_normal_consistency_factor).replace('.', '')
                                 ).replace(

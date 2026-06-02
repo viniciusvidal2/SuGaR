@@ -50,8 +50,13 @@ def extract_mesh_and_texture_from_refined_sugar(args):
     
     scene_name = source_path.split('/')[-2] if len(source_path.split('/')[-1]) == 0 else source_path.split('/')[-1]
     coarse_mesh_base = getattr(args, 'coarse_mesh_dir', None) or './output/coarse_mesh'
-    sugar_mesh_path = os.path.join(coarse_mesh_base, scene_name,
-                                refined_model_path.split('/')[-2].split('_normalconsistency')[0].replace('sugarfine', 'sugarmesh') + '.ply')
+    
+    mesh_filename = refined_model_path.split('/')[-2].split('_normalconsistency')[0].replace('sugarfine', 'sugarmesh') + '.ply'
+    sugar_mesh_path = os.path.join(coarse_mesh_base, scene_name, mesh_filename)
+    if not os.path.exists(sugar_mesh_path):
+        sugar_mesh_path_fallback = os.path.join(coarse_mesh_base, mesh_filename)
+        if os.path.exists(sugar_mesh_path_fallback):
+            sugar_mesh_path = sugar_mesh_path_fallback
     
     if args.square_size is None:
         if n_gaussians_per_surface_triangle == 1:
