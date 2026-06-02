@@ -596,6 +596,12 @@ docker info | grep -i runtime
 
 ### 1. Build the Docker image
 
+Clone the __nvdiffrast__ dependency to speed up mesh generation. It is mandatory for the docker image to be built.
+
+```shell
+git clone https://github.com/NVlabs/nvdiffrast
+```
+
 From the root of the repository, run:
 
 ```shell
